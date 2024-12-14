@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         BUILD_DIR = "build"
+        RELEASE_NAME="v1.0.0"
     }
 
     stages {
@@ -70,6 +71,37 @@ pipeline {
                 }
             }
         }
+
+        stage('Create GitHub Release') {
+                    steps {
+                        script {
+                            if (isUnix()) {
+                                sh "tar -czvf ${RELEASE_NAME}.tar.gz -C ${BUILD_DIR} release"
+                            } else {
+                                bat "tar -czvf ${RELEASE_NAME}.tar.gz -C ${BUILD_DIR} release"
+                            }
+
+                            withCredentials([string(credentialsId: 'GitHubToken', variable: 'GITHUB_TOKEN')]) {
+                                if (isUnix()) {
+                                    sh """
+                                        gh release create ${RELEASE_NAME} ${RELEASE_NAME}.tar.gz \
+                                        --repo to/repo \
+                                        --title "${RELEASE_NAME}" \
+                                        --notes "Automated release for ${RELEASE_NAME}."
+                                    """
+                                } else {
+                                    bat """
+                                        gh release create ${RELEASE_NAME} ${RELEASE_NAME}.tar.gz ^
+                                        --repo to/repo ^
+                                        --title "${RELEASE_NAME}" ^
+                                        --notes "Automated release for ${RELEASE_NAME}."
+                                    """
+                                }
+                            }
+                        }
+                    }
+        }
+
     }
 
     post {
