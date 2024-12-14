@@ -9,12 +9,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    // Index of jenkins credentials
                     withCredentials([usernamePassword(credentialsId: 'credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        username and secret
                         def encodedUser = URLEncoder.encode(env.GIT_USER, "UTF-8")
                         def encodedPass = URLEncoder.encode(env.GIT_PASS, "UTF-8")
-                        bat "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
+                        if (isUnix()) {
+                            sh "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
+                        } else {
+                            bat "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
+                        }
                     }
                 }
             }
@@ -23,10 +25,13 @@ pipeline {
         stage('CMake Configure') {
             steps {
                 script {
-                    // Create build directory if it does not exist
-                    bat "if not exist ${BUILD_DIR} mkdir ${BUILD_DIR}"
-                    // Navigate to build directory and run cmake
-                    bat "cd ${BUILD_DIR} && cmake ../repo"
+                    if (isUnix()) {
+                        sh "mkdir -p ${BUILD_DIR}"
+                        sh "cd ${BUILD_DIR} && cmake ../repo"
+                    } else {
+                        bat "if not exist ${BUILD_DIR} mkdir ${BUILD_DIR}"
+                        bat "cd ${BUILD_DIR} && cmake ../repo"
+                    }
                 }
             }
         }
@@ -34,8 +39,13 @@ pipeline {
         stage('CMake Build') {
             steps {
                 script {
-                    // Build the project using CMake
-                    bat "cd ${BUILD_DIR} && cmake --build ."
+                    if (isUnix()) {
+                        // Build the project using CMake for Linux
+                        sh "cd ${BUILD_DIR} && cmake --build ."
+                    } else {
+                        // Build the project using CMake for Windows
+                        bat "cd ${BUILD_DIR} && cmake --build ."
+                    }
                 }
             }
         }
