@@ -12,6 +12,27 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
                         def encodedUser = URLEncoder.encode(env.GIT_USER, "UTF-8")
                         def encodedPass = URLEncoder.encode(env.GIT_PASS, "UTF-8")
+
+
+                            // Fetch Content error fix
+                        if (isUnix())
+                        {
+                            sh """
+                                git config --global credential.helper store && \
+                                echo "https://${env.GIT_USER}:${env.GIT_PASS}@github.com" > ~/.git-credentials
+                            """
+
+                        }
+                        else 
+                        {
+                                bat """
+                                git config --global credential.helper store && ^
+                                echo https://${env.GIT_USER}:${env.GIT_PASS}@github.com > %USERPROFILE%\\.git-credentials
+                            """
+
+                        }
+
+
                         if (isUnix()) {
                             sh "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
                         } else {
