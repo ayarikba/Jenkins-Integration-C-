@@ -10,36 +10,14 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'credentials', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_PASS')]) {
-                        def encodedUser = URLEncoder.encode(env.GIT_USER, "UTF-8")
-                        def encodedPass = URLEncoder.encode(env.GIT_PASS, "UTF-8")
-
-
-                            // Fetch Content error fix
-                        if (isUnix())
-                        {
-                            sh """
-                                git config --global credential.helper store && \
-                                echo "https://${env.GIT_USER}:${env.GIT_PASS}@github.com" > ~/.git-credentials
-                            """
-
-                        }
-                        else 
-                        {
-                                bat """
-                                git config --global credential.helper store && ^
-                                echo https://${env.GIT_USER}:${env.GIT_PASS}@github.com > %USERPROFILE%\\.git-credentials
-                            """
-
-                        }
-
-
+                            // withcredentials removed because of fetchcontent errorü
+                            // in windows you need to login in jenkins service 
                         if (isUnix()) {
-                            sh "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
+                            sh "git clone https://github.com/to/repo.git"
                         } else {
-                            bat "git clone https://${encodedUser}:${encodedPass}@github.com/to/repo.git"
+                            bat "git clone https://github.com/to/repo.git"
                         }
-                    }
+                    
                 }
             }
         }
@@ -71,7 +49,7 @@ pipeline {
                 }
             }
         }
-
+        /*
         stage('Create GitHub Release') {
                     steps {
                         script {
@@ -100,7 +78,7 @@ pipeline {
                             }
                         }
                     }
-        }
+        }*/
 
     }
 
